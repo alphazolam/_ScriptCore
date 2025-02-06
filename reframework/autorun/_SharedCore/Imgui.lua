@@ -2,12 +2,11 @@
 local modName =  "_ScriptCore: Imgui LUA"
 
 local modAuthor = "SilverEzredes; alphaZomega"
-local modUpdated = "01/20/2025"
-local modVersion = "v1.0.51"
+local modUpdated = "02/03/2025"
+local modVersion = "v1.0.55"
 local modCredits = "praydog"
 
 --------------------------------------/--
-local func = require("_SharedCore/Functions")
 local changed = false
 
 --These colors are meant to be used with 'func.convert_rgba_to_ABGR'
@@ -25,6 +24,21 @@ local colors = {
     safetyYellow = {238, 210, 2, 255},
     lime = {159, 235, 38, 255},
     REFgray = {51, 52, 54, 255},
+	highContrast = {
+		red = {248, 128, 98, 255},
+		green = {78, 201, 148, 255},
+		dewGreen = {181, 206, 168, 255},
+		blue = {0, 120, 212, 255},
+		lightBlue = {81, 154, 186, 255},
+		cerulean = {86, 156, 214, 255},
+		cyan = {156, 220, 254, 255},
+		yellow = {255, 215, 10, 255},
+		dewYellow = {220, 220, 170, 255},
+		peach = {260, 145, 120, 255},
+		gold = {204, 153, 16, 255},
+		purple = {197, 132, 192, 255},
+		pink = {212, 112, 214, 255},
+	},
 }
 
 local ImGuiCol = {
@@ -102,12 +116,12 @@ local function draw_line(char, n)
     return string.rep(char, n)
 end
 
-local function progressBar_DynamicColor(label, isSymbol, symbolOffset, baseColor, customColor01, customColor02, backgroundColor, baseValue, customValue, maxValue, barW, barH)
+local function progressBar_DynamicColor(label, isSymbol, symbolOffset, baseColor, customColor01, customColor02, backgroundColor, baseValue, customValue, maxValue, barW, barH, isGraph)
     imgui.push_style_color(ImGuiCol.FrameBg, backgroundColor)
     local percentDiff = math.abs(baseValue - customValue) / maxValue * 100
     local symbolCount = math.floor(percentDiff / 5)
 
-    if label ~= nil then
+    if label ~= nil and not isGraph then
         imgui.text(label .. draw_line(" ", symbolOffset))
     end
 
@@ -177,7 +191,7 @@ local isi_changed = {}
 --Takes an imgui function like 'imgui.drag_float', a key of some sort, then the regular imgui arguments for that function, with all the args after 'value' wrapped in a table 'args'
 --NOTE: every single use of this function must have a UNIQUE key or values will be shared
 local function imgui_safe_input(fn, key, label, value, args)
-	if args then 
+	if args then
 		changed, isi_data[key] = fn(label, isi_data[key] or value, table.unpack(args))
 	else
 		changed, isi_data[key] = fn(label, isi_data[key] or value)
@@ -185,7 +199,7 @@ local function imgui_safe_input(fn, key, label, value, args)
 	isi_changed[key] = isi_changed[key] or changed
 	
 	if not imgui.is_item_active() then
-		if isi_changed[key] then 
+		if isi_changed[key] then
 			value, isi_changed[key], isi_data[key] = isi_data[key], nil, nil
 			return true, value
 		end

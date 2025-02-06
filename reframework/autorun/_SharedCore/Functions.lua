@@ -2,8 +2,8 @@
 local modName =  "_ScriptCore: Functions LUA"
 
 local modAuthor = "SilverEzredes; alphaZomega"
-local modUpdated = "01/24/2025"
-local modVersion = "v1.1.91c"
+local modUpdated = "02/01/2025"
+local modVersion = "v1.1.92"
 local modCredits = "praydog"
 
 --/////////////////////////////////////--
@@ -54,8 +54,8 @@ local function generate_statics(typename)
 			local raw_value = field:get_data(nil)
 			if raw_value ~= nil then
 				local name = field:get_name()
-				enum[name] = raw_value 
-				enum[raw_value] = name 
+				enum[name] = raw_value
+				enum[raw_value] = name
 				table.insert(names, name)
 			end
 		end
@@ -129,7 +129,7 @@ local function convert_vector4f_to_rgba(vector)
 end
 
 --Convert RGBA to ABGR, args can take either a table with 4 values or 4 different ints
--- myCoolColorTable = {255, 187, 0, 255} ||
+-- myCoolColorTable = {255, 187, 0, 255}
 -- red = 255, green = 72, blue = 137, alpha = 255,
 local function convert_rgba_to_ABGR(r, g, b, a)
     if type(r) == "table" then
@@ -157,10 +157,18 @@ local function countTableElements(tbl)
     return count
 end
 --Checks if a table contains the specified element
-local function table_contains(table, element)
-    for _, value in ipairs(table) do
-        if value == element then
-            return true
+local function table_contains(tbl, element, isSearchKeys)
+    if isSearchKeys then
+        for key, _ in pairs(tbl) do
+            if key == element then
+                return true
+            end
+        end
+    else
+        for _, value in ipairs(tbl) do
+            if value == element then
+                return true
+            end
         end
     end
     return false
@@ -213,7 +221,6 @@ local function get_fields_and_methods(typedef)
 	end
 	fms[name] = {fields, methods}
 	return fields, methods
-	
 end
 
 REMgdObj = {
@@ -228,14 +235,14 @@ REMgdObj = {
         o._.name = o._.type:get_name()
         o._.Name = o._.type:get_full_name()
         o._.fields = {}
-        for i, field in ipairs(o._.type:get_fields()) do 
+        for i, field in ipairs(o._.type:get_fields()) do
             local field_name = field:get_name()
             local try, value = pcall(field.get_data, field, obj)
             o._.fields[field_name] = field
             o[field_name] = value
         end
         o._.methods = {}
-        for i, method in ipairs(o._.type:get_methods()) do 
+        for i, method in ipairs(o._.type:get_methods()) do
             local method_name = method:get_name()
             o._.methods[method_name] = method
             o[method_name] = function(self, args)
@@ -395,7 +402,7 @@ local function lua_get_array(src_obj, allow_empty)
 			system_array[i] = src_obj:get_Item(i-1)
 		end
 	end
-	system_array = system_array or src_obj.get_elements and src_obj:get_elements() 
+	system_array = system_array or src_obj.get_elements and src_obj:get_elements()
 	return (allow_empty and system_array) or (system_array and system_array[1] and system_array)
 end
 
@@ -442,7 +449,7 @@ local function clone_array(re_array, new_array_sz, td_name, do_copy_only)
 	new_array_sz = new_array_sz or #re_array
 	td_name = td_name or re_array:get_type_definition():get_full_name():gsub("%[%]", "")
 	local new_array = sdk.create_managed_array(td_name, new_array_sz):add_ref()
-	for i, item in pairs(re_array) do 
+	for i, item in pairs(re_array) do
 		if item ~= nil then
 			new_array[i] = (not do_copy_only and sdk.is_managed_object(item) and not item.type and clone(item)) or item
 		end
@@ -487,16 +494,16 @@ end
 --Adds one new blank item to a SystemArray; can be passed the array or a string typename if the array doesnt yet exist
 local function append_to_array(re_array, new_item, fields)
 	
-	if type(re_array) == "string" then 
+	if type(re_array) == "string" then
 		re_array =  sdk.create_managed_array(re_array, 0):add_ref()
 	end
 	local sz = 0
 	local td_name = re_array:get_type_definition():get_full_name():gsub("%[%]", "")
 	local new_array = sdk.create_managed_array(td_name, re_array:get_Count()+1):add_ref()
 	
-	for i=0, new_array:get_Count() - 1 do 
+	for i=0, new_array:get_Count() - 1 do
 		if re_array[i] ~= nil then
-			new_array[i] = re_array[i] 
+			new_array[i] = re_array[i]
 		else 
 			new_array[i] = new_item or (sdk.create_instance(td_name) or sdk.create_instance(td_name, true)):add_ref()
 			sz = i + 1
@@ -522,8 +529,8 @@ local function remove_array(array, rem_idx, new_size)
 	local new_arr = sdk.create_managed_array(array:get_type_definition():get_full_name():gsub("%[%]", ""), new_size or #array-1):add_ref()
 	local ctr = 0
 	for i, item in pairs(array) do
-		if i ~= rem_idx then 
-			new_arr[ctr] = item 
+		if i ~= rem_idx then
+			new_arr[ctr] = item
 			ctr = ctr + 1
 		end
 	end
@@ -952,7 +959,7 @@ end
 --Uses a table of string component type names to create new components for the gameobject
 local function spawn_gameobj(name, position, rotation, folder, components_list)
 	local gameobj = sdk.find_type_definition("via.GameObject"):get_method("create(System.String, via.Folder)"):call(nil, name, folder or 0)
-	if gameobj then 
+	if gameobj then
 		gameobj:call(".ctor")
 		gameobj:set_Name(name)
 		local xform = gameobj:get_Transform()
