@@ -2,10 +2,10 @@
 local modName =  "_ScriptCore: Hotkeys"
 
 local modAuthor = "alphaZomega"
-local modUpdated = "12/20/2024"
-local modVersion = "v1.3.4"
+local modUpdated = "02/07/2024"
+local modVersion = "v1.3.41"
 local modCredits = "praydog"
-
+local modNotes = "Fixed GamePad issues in MHWilds OBT2. (Silver)"
 --/////////////////////////////////////--
 
 local kb, mouse, pad
@@ -465,6 +465,9 @@ end
 
 local kb_singleton = sdk.get_native_singleton("via.hid.Keyboard")
 local gp_singleton = sdk.get_native_singleton("via.hid.Gamepad")
+if reframework.get_game_name() == "mhwilds" then
+	gp_singleton = sdk.get_native_singleton("via.hid.GamePad")
+end
 local mb_singleton = sdk.get_native_singleton("via.hid.Mouse")
 local kb_typedef = sdk.find_type_definition("via.hid.Keyboard")
 local gp_typedef = sdk.find_type_definition("via.hid.GamePad")
@@ -473,6 +476,9 @@ local mb_typedef = sdk.find_type_definition("via.hid.Mouse")
 local function update_states()
 	hk.kb = sdk.call_native_func(kb_singleton, kb_typedef, "get_Device")
 	hk.pad = sdk.call_native_func(gp_singleton, gp_typedef, "getMergedDevice", 0)
+	if reframework.get_game_name() == "mhwilds" then
+		hk.pad = sdk.call_native_func(gp_singleton, gp_typedef, "get_MergedDevice")
+	end
 	hk.mouse = sdk.call_native_func(mb_singleton, mb_typedef, "get_Device")
 	kb, pad, mouse = hk.kb, hk.pad, hk.mouse
 	hotkeys_down, hotkeys_up, hotkeys_trig = {}, {}, {}

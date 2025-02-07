@@ -350,7 +350,7 @@ local FilePicker = {
 		changed, self.doNatives = imgui.checkbox("Natives", self.doNatives)
 		tooltip("Browse files in the " .. (self.doNatives and "reframework\\data" or "natives").." folder")
 		
-		if changed then 
+		if changed then
 			local old_prev = self.prevModeDir
 			self.prevModeDir = self.currentDir
 			self.prefixDir = self.doNatives and "natives\\" or "reframework\\data\\"
