@@ -2,8 +2,8 @@
 local modName =  "_ScriptCore: Imgui LUA"
 
 local modAuthor = "SilverEzredes; alphaZomega"
-local modUpdated = "02/03/2025"
-local modVersion = "v1.0.55"
+local modUpdated = "02/16/2025"
+local modVersion = "v1.0.56"
 local modCredits = "praydog"
 
 --------------------------------------/--
@@ -11,18 +11,21 @@ local changed = false
 
 --These colors are meant to be used with 'func.convert_rgba_to_ABGR'
 local colors = {
-    white = {255,255,255,255},
-    white50 = {255,255,255,128},
+    white = {255, 255, 255, 255},
+    white50 = {255, 255, 255, 128},
     red = {255, 0, 0, 255},
     green = {0, 255, 0, 255},
     blue = {0, 0, 255, 255},
     cyan = {0, 255, 255, 255},
     gold = {255, 187, 0, 255},
     orange = {255, 157, 50, 255},
+	sand = {250, 196, 130, 255},
     cerulean = {0, 171, 240, 255},
     deepRed = {227, 41, 27, 255},
+	rose = {208, 77, 99, 255},
     safetyYellow = {238, 210, 2, 255},
     lime = {159, 235, 38, 255},
+	purple = {162, 0, 255, 255},
     REFgray = {51, 52, 54, 255},
 	highContrast = {
 		red = {248, 128, 98, 255},

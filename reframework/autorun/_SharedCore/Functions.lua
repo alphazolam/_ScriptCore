@@ -2,8 +2,8 @@
 local modName =  "_ScriptCore: Functions LUA"
 
 local modAuthor = "SilverEzredes; alphaZomega"
-local modUpdated = "02/07/2025"
-local modVersion = "v1.1.93"
+local modUpdated = "02/25/2025"
+local modVersion = "v1.1.94"
 local modCredits = "praydog"
 
 --/////////////////////////////////////--
@@ -370,7 +370,6 @@ local function is_child_of(child_xform, possible_parent_xform)
 	end
 	return false
 end
-
 
 --MMDK Functions:
 
@@ -965,7 +964,7 @@ local function spawn_gameobj(name, position, rotation, folder, components_list)
 		local xform = gameobj:get_Transform()
 		if position then xform:set_Position(position) end
 		if rotation then xform:set_Rotation(rotation) end
-		if components_list then 
+		if components_list then
 			for i, comp_name in ipairs(components_list) do
 				add_component(gameobj, comp_name)
 			end
