@@ -2,8 +2,8 @@
 local modName =  "_ScriptCore: Functions LUA"
 
 local modAuthor = "SilverEzredes; alphaZomega"
-local modUpdated = "02/25/2025"
-local modVersion = "v1.1.94"
+local modUpdated = "02/28/2025"
+local modVersion = "v1.2.00"
 local modCredits = "praydog"
 
 --/////////////////////////////////////--

@@ -2,8 +2,8 @@
 local modName =  "_ScriptCore: Hotkeys"
 
 local modAuthor = "alphaZomega"
-local modUpdated = "02/07/2024"
-local modVersion = "v1.3.41"
+local modUpdated = "02/28/2024"
+local modVersion = "v1.3.50"
 local modCredits = "praydog"
 local modNotes = "Fixed GamePad issues in MHWilds OBT2. (Silver)"
 --/////////////////////////////////////--

@@ -2,8 +2,8 @@
 local modName =  "_ScriptCore: Imgui LUA"
 
 local modAuthor = "SilverEzredes; alphaZomega"
-local modUpdated = "02/16/2025"
-local modVersion = "v1.0.56"
+local modUpdated = "02/28/2025"
+local modVersion = "v1.0.60"
 local modCredits = "praydog"
 
 --------------------------------------/--
