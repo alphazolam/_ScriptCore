@@ -2,8 +2,8 @@
 local modName =  "_ScriptCore: Imgui LUA"
 
 local modAuthor = "SilverEzredes; alphaZomega"
-local modUpdated = "02/28/2025"
-local modVersion = "v1.0.60"
+local modUpdated = "03/26/2025"
+local modVersion = "v1.0.70"
 local modCredits = "praydog"
 
 --------------------------------------/--
@@ -44,7 +44,7 @@ local colors = {
 	},
 }
 
-local ImGuiCol = {
+local ImGuiCol = { -- SILVER: Pray updated the ImGui backend some time in March 2025, but something with the indexes is wrong as for the latest imgui ver. PlotHistogram = 43 not 42 
 	Text = 0,
 	TextDisabled = 1,
 	WindowBg = 2,
@@ -78,27 +78,29 @@ local ImGuiCol = {
 	ResizeGrip = 30,
 	ResizeGripHovered = 31,
 	ResizeGripActive = 32,
-	Tab = 33,
-	TabHovered = 34,
-	TabActive = 35,
-	TabUnfocused = 36,
-	TabUnfocusedActive = 37,
-	PlotLines = 38,
-	PlotLinesHovered = 39,
-	PlotHistogram = 40,
-	PlotHistogramHovered = 41,
-	TableHeaderBg = 42,
-	TableBorderStrong = 43,
-	TableBorderLight = 44,
-	TableRowBg = 45,
-	TableRowBgAlt = 46,
-	TextSelectedBg = 47,
-	DragDropTarget = 48,
-	NavHighlight = 49,
-	NavWindowingHighlight = 50,
-	NavWindowingDimBg = 51,
-	ModalWindowDimBg = 52,
-	COUNT = 53 -- ImGuiCol_COUNT
+	InputTextCursor = 33,
+	Tab = 34,
+	TabHovered = 35,
+	TabActive = 36,
+	TabUnfocused = 37,
+	TabUnfocusedActive = 38,
+	TabDimmedSelectedOverline = 39,
+	PlotLines = 40,
+	PlotLinesHovered = 41,
+	PlotHistogram = 42,
+	PlotHistogramHovered = 43,
+	TableHeaderBg = 44,
+	TableBorderStrong = 45,
+	TableBorderLight = 46,
+	TableRowBg = 47,
+	TableRowBgAlt = 48,
+	TextSelectedBg = 49,
+	DragDropTarget = 50,
+	NavHighlight = 51,
+	NavWindowingHighlight = 52,
+	NavWindowingDimBg = 53,
+	ModalWindowDimBg = 54,
+	COUNT = 55 -- ImGuiCol_COUNT
 }
 
 local function tooltip(text, do_force)
@@ -168,7 +170,9 @@ local function button_CheckboxStyle(label, table, stateBoolName, buttonColor, te
         table[stateBoolName] = not table[stateBoolName]
     end
     imgui.end_rect()
-    imgui.pop_style_color(3)
+	if table[stateBoolName] then
+    	imgui.pop_style_color(3)
+	end
 end
 
 --Takes an imgui function such as 'imgui.drag_float3' where the 'value' passed is a table instead of a Vector3f or whatever
