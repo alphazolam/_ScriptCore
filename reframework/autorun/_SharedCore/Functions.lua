@@ -2,10 +2,10 @@
 local modName =  "_ScriptCore: Functions LUA"
 
 local modAuthor = "SilverEzredes; alphaZomega"
-local modUpdated = "02/28/2025"
-local modVersion = "v1.2.00"
-local modCredits = "praydog"
-
+local modUpdated = "10/14/2025"
+local modVersion = "v1.2.02"
+local modCredits = "praydog; Che"
+local modNotes = "Added 'format_ray_test_results' and updated 'test_ray' (Che)"
 --/////////////////////////////////////--
 local enums = {}
 
@@ -1093,6 +1093,9 @@ local contact_pt_td = sdk.find_type_definition("via.physics.ContactPoint")
 local ray_result = sdk.create_instance("via.physics.CastRayResult"):add_ref()
 local ray_method = sdk.find_type_definition("via.physics.System"):get_method("castRay(via.physics.CastRayQuery, via.physics.CastRayResult)")
 local ray_query = sdk.create_instance("via.physics.CastRayQuery"):add_ref()
+local get_layer_name_method = sdk.find_type_definition("via.physics.System"):get_method("getLayerName(System.UInt32)")
+local get_mask_name_method = sdk.find_type_definition("via.physics.System"):get_method("getMaskName(System.UInt32, System.UInt32)")
+
 ray_query:clearOptions()
 ray_query:enableAllHits()
 ray_query:enableNearSort()
@@ -1143,21 +1146,62 @@ local function cast_ray(start_position, end_position, layer, maskbits, shape_rad
 	return result
 end
 
---Casts 10,000 rays to see which layers and maskbits detect what
+--Casts 1000 rays to see which layers and maskbits detect what
 local function test_ray(start_pos, end_pos)
 	local cam_mtx = not (start_pos and end_pos) and sdk.get_primary_camera():get_WorldMatrix()
 	start_pos = start_pos or cam_mtx[3]
 	end_pos = end_pos or cam_mtx[3] + cam_mtx[2] * -1000 
 	local results = {}
+    local layer_names = {}
+    local mask_names = {}
+    local mask_bits = {}
+	local bits = {0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536}
 	
-	for layer=0, 100 do
+
+	for layer=0, 1000 do
 		results[layer] = {}
-		for maskbits=0, 100 do
-			local out = cast_ray(start_pos, end_pos, layer, maskbits)[1]
-			results[layer][maskbits] = out and out[1]
+        layer_names[layer] = get_layer_name_method:call(via_physics_system, layer)
+        mask_names[layer] = {}
+        mask_bits[layer] = {}
+        
+        for k, mask_bit in pairs(bits) do
+            -- for maskbits=0, 255 do
+			local out = cast_ray(start_pos, end_pos, layer, mask_bit)[1]
+			results[layer][k] = out and out[1]
+            mask_names[layer][k] = get_mask_name_method:call(via_physics_system, layer, mask_bit)
+            mask_bits[layer][k] = mask_bit
 		end
 	end
-	return results
+
+	return results, layer_names, mask_names, mask_bits
+	-- return results
+end
+
+local function format_ray_test_results(hit_list, layer_names, mask_names, mask_bits)
+    print( "\n",#hit_list )
+
+	local layer = 0
+    local mask = 0
+
+	for i = 1, #hit_list do
+    
+        for j = 1, #hit_list[i] do
+            local layer_name = layer_names[i]
+
+            if hit_list[i][j] then    
+                local hit_name = hit_list[i][j]:get_Name()
+                local mask_name = mask_names[i][j]
+                local mask_bit = mask_bits[i][j]
+                print( string.format("%-80s", hit_name), string.format("%-8s", "Layer:"..i.." "..layer_name), "Mask:"..mask_bit.." "..mask_name )
+            end
+
+            mask = mask + 1
+        end
+    
+        layer = layer + 1
+	end
+
+    print( layer, mask )
 end
 
 --Adds a new via.motion.DynamicMotionBank to a via.motion.Motion, making accessible the animations from 'motlist_path' by using the BankID 'new_bank_id'
@@ -1246,6 +1290,7 @@ func = {
 	copy_fields_to_objs = copy_fields_to_objs,
 	cast_ray = cast_ray,
 	test_ray = test_ray,
+	format_ray_test_results = format_ray_test_results,
 	damping = damping,
 	copy_props = copy_props,
 	add_component = add_component,

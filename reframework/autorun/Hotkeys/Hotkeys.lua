@@ -2,10 +2,10 @@
 local modName =  "_ScriptCore: Hotkeys"
 
 local modAuthor = "alphaZomega"
-local modUpdated = "02/28/2024"
-local modVersion = "v1.3.50"
-local modCredits = "praydog"
-local modNotes = "Fixed GamePad issues in MHWilds OBT2. (Silver)"
+local modUpdated = "10/10/2025"
+local modVersion = "v1.3.51"
+local modCredits = "praydog; Che"
+local modNotes = "Added L3/R3 to the buttons list (Che)"
 --/////////////////////////////////////--
 
 local kb, mouse, pad
@@ -113,6 +113,8 @@ buttons["RB (R1)"] = buttons.RTrigTop
 buttons["RT (R2)"] = buttons.RTrigBottom
 buttons["LB (L1)"] = buttons.LTrigTop
 buttons["LT (L2)"] = buttons.LTrigBottom
+buttons["L3"] = buttons.LStickPush
+buttons["R3"] = buttons.RStickPush
 buttons.LTrigTop, buttons.RTrigTop, buttons.RTrigBottom, buttons.LTrigBottom = nil
 buttons.CLeft, buttons.CRight, buttons.RLeft, buttons.RUp, buttons.RDown, buttons.RRight, buttons.Cancel = nil
 
