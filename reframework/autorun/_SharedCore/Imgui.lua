@@ -1,12 +1,12 @@
---------------------------------------/--
+--/////////////////////////////////////--
 local modName =  "_ScriptCore: Imgui LUA"
 
 local modAuthor = "SilverEzredes; alphaZomega"
-local modUpdated = "02/28/2025"
-local modVersion = "v1.0.60"
+local modUpdated = "10/14/2025"
+local modVersion = "v1.0.70"
 local modCredits = "praydog"
-
---------------------------------------/--
+local modNotes = "Updated the ImGuiCol table to support the latest version of REF. (Silver)"
+--/////////////////////////////////////--
 local changed = false
 
 --These colors are meant to be used with 'func.convert_rgba_to_ABGR'
@@ -46,59 +46,65 @@ local colors = {
 
 local ImGuiCol = {
 	Text = 0,
-	TextDisabled = 1,
-	WindowBg = 2,
-	ChildWindowBg = 3, -- Deprecated, use ChildBg
-	PopupBg = 4,
-	Border = 5,
-	BorderShadow = 6,
-	FrameBg = 7,
-	FrameBgHovered = 8,
-	FrameBgActive = 9,
-	TitleBg = 10,
-	TitleBgCollapsed = 11,
-	TitleBgActive = 12,
-	MenuBarBg = 13,
-	ScrollbarBg = 14,
-	ScrollbarGrab = 15,
-	ScrollbarGrabHovered = 16,
-	ScrollbarGrabActive = 17,
-	CheckMark = 18,
-	SliderGrab = 19,
-	SliderGrabActive = 20,
-	Button = 21,
-	ButtonHovered = 22,
-	ButtonActive = 23,
-	Header = 24,
-	HeaderHovered = 25,
-	HeaderActive = 26,
-	Separator = 27,
-	SeparatorHovered = 28,
-	SeparatorActive = 29,
-	ResizeGrip = 30,
-	ResizeGripHovered = 31,
-	ResizeGripActive = 32,
-	Tab = 33,
-	TabHovered = 34,
-	TabActive = 35,
-	TabUnfocused = 36,
-	TabUnfocusedActive = 37,
-	PlotLines = 38,
-	PlotLinesHovered = 39,
-	PlotHistogram = 40,
-	PlotHistogramHovered = 41,
-	TableHeaderBg = 42,
-	TableBorderStrong = 43,
-	TableBorderLight = 44,
-	TableRowBg = 45,
-	TableRowBgAlt = 46,
-	TextSelectedBg = 47,
-	DragDropTarget = 48,
-	NavHighlight = 49,
-	NavWindowingHighlight = 50,
-	NavWindowingDimBg = 51,
-	ModalWindowDimBg = 52,
-	COUNT = 53 -- ImGuiCol_COUNT
+    TextDisabled = 1,
+    WindowBg = 2,              -- Background of normal windows
+    ChildBg = 3,               -- Background of child windows
+    PopupBg = 4,               -- Background of popups, menus, tooltips windows
+    Border = 5,
+    BorderShadow = 6,
+    FrameBg = 7,               -- Background of checkbox, radio button, plot, slider, text input
+    FrameBgHovered = 8,
+    FrameBgActive = 9,
+    TitleBg = 10,               -- Title bar
+    TitleBgActive = 11,         -- Title bar when focused
+    TitleBgCollapsed = 12,      -- Title bar when collapsed
+    MenuBarBg = 13,
+    ScrollbarBg = 14,
+    ScrollbarGrab = 15,
+    ScrollbarGrabHovered = 16,
+    ScrollbarGrabActive = 17,
+    CheckMark = 18,             -- Checkbox tick and RadioButton circle
+    SliderGrab = 19,
+    SliderGrabActive = 20,
+    Button = 21,
+    ButtonHovered = 22,
+    ButtonActive = 23,
+    Header = 23,                -- Header* colors are used for CollapsingHeader, TreeNode, Selectable, MenuItem
+    HeaderHovered = 24,
+    HeaderActive = 25,
+    Separator = 26,
+    SeparatorHovered = 27,
+    SeparatorActive = 28,
+    ResizeGrip = 29,            -- Resize grip in lower-right and lower-left corners of windows.
+    ResizeGripHovered = 30,
+    ResizeGripActive = 31,
+    InputTextCursor = 32,       -- InputText cursor/caret
+    TabHovered = 33,            -- Tab background, when hovered
+    Tab = 34,                   -- Tab background, when tab-bar is focused & tab is unselected
+    TabSelected = 35,           -- Tab background, when tab-bar is focused & tab is selected
+    TabSelectedOverline = 36,   -- Tab horizontal overline, when tab-bar is focused & tab is selected
+    TabDimmed = 37,             -- Tab background, when tab-bar is unfocused & tab is unselected
+    TabDimmedSelected = 38,     -- Tab background, when tab-bar is unfocused & tab is selected
+    TabDimmedSelectedOverline = 39,--..horizontal overline, when tab-bar is unfocused & tab is selected
+    PlotLines = 40,
+    PlotLinesHovered = 41,
+    PlotHistogram = 42,
+    PlotHistogramHovered = 43,
+    TableHeaderBg = 44,         -- Table header background
+    TableBorderStrong = 45,     -- Table outer and header borders (prefer using Alpha=1.0 here)
+    TableBorderLight = 46,      -- Table inner borders (prefer using Alpha=1.0 here)
+    TableRowBg = 47,            -- Table row background (even rows)
+    TableRowBgAlt = 48,         -- Table row background (odd rows)
+    TextLink = 49,              -- Hyperlink color
+    TextSelectedBg = 50,        -- Selected text inside an InputText
+    TreeLines = 51,             -- Tree node hierarchy outlines when using ImGuiTreeNodeFlags_DrawLines
+    DragDropTarget = 52,        -- Rectangle highlighting a drop target
+    UnsavedMarker = 53,         -- Unsaved Document marker (in window title and tabs)
+    NavCursor = 54,             -- Color of keyboard/gamepad navigation cursor/rectangle, when visible
+    NavWindowingHighlight = 55, -- Highlight window when using CTRL+TAB
+    NavWindowingDimBg = 56,     -- Darken/colorize entire screen behind the CTRL+TAB window list, when active
+    ModalWindowDimBg = 57,      -- Darken/colorize entire screen behind a modal window, when one is active
+    COUNT = 58,
 }
 
 local function tooltip(text, do_force)
@@ -133,15 +139,15 @@ local function progressBar_DynamicColor(label, isSymbol, symbolOffset, baseColor
             imgui.same_line()
             imgui.text_colored(draw_line(">", symbolCount), customColor01)
         end
-        imgui.push_style_color(ImGuiCol.PlotHistogram, customColor01)
+        imgui.push_style_color(ImGuiCol.PlotHistogramHovered, customColor01)
     elseif baseValue > customValue then
         if isSymbol then
             imgui.same_line()
             imgui.text_colored(draw_line("<", symbolCount), customColor02)
         end
-        imgui.push_style_color(ImGuiCol.PlotHistogram, customColor02)
+        imgui.push_style_color(ImGuiCol.PlotHistogramHovered, customColor02)
     else
-        imgui.push_style_color(ImGuiCol.PlotHistogram, baseColor)
+        imgui.push_style_color(ImGuiCol.PlotHistogramHovered, baseColor)
     end
 
     local value = math.min(customValue / maxValue, 1)
@@ -167,8 +173,10 @@ local function button_CheckboxStyle(label, table, stateBoolName, buttonColor, te
     if imgui.button(label) then
         table[stateBoolName] = not table[stateBoolName]
     end
-    imgui.end_rect()
-    imgui.pop_style_color(3)
+	imgui.end_rect()
+	if table[stateBoolName] then
+    	imgui.pop_style_color(3)
+	end
 end
 
 --Takes an imgui function such as 'imgui.drag_float3' where the 'value' passed is a table instead of a Vector3f or whatever
