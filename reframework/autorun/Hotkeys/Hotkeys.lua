@@ -2,10 +2,10 @@
 local modName =  "_ScriptCore: Hotkeys"
 
 local modAuthor = "alphaZomega"
-local modUpdated = "10/10/2025"
-local modVersion = "v1.3.51"
+local modUpdated = "02/28/2026"
+local modVersion = "v1.3.52"
 local modCredits = "praydog; Che"
-local modNotes = "Added L3/R3 to the buttons list (Che)"
+local modNotes = "Added RE9 support"
 --/////////////////////////////////////--
 
 local kb, mouse, pad
@@ -371,11 +371,21 @@ local function hotkey_setter(action_name, hold_action_name, fake_name, title_too
 					end
 				end
 			end
-			for key_name, id in pairs(keys) do 
-				if kb and kb:call("isRelease", id) then 
-					hotkeys[action_name] = key_name
-					key_updated = true
-					goto exit
+			if  reframework.get_game_name() ~= "re9" then
+				for key_name, id in pairs(keys) do
+					if kb and kb:call("isRelease", id) then
+						hotkeys[action_name] = key_name
+						key_updated = true
+						goto exit
+					end
+				end
+			else
+				for key_name, id in pairs(keys) do
+					if kb and kb:call("isDown", id) then
+						hotkeys[action_name] = key_name
+						key_updated = true
+						goto exit
+					end
 				end
 			end
 			
@@ -467,7 +477,7 @@ end
 
 local kb_singleton = sdk.get_native_singleton("via.hid.Keyboard")
 local gp_singleton = sdk.get_native_singleton("via.hid.Gamepad")
-if reframework.get_game_name() == "mhwilds" then
+if (reframework.get_game_name() == "mhwilds") or (reframework.get_game_name() == "re9")  then
 	gp_singleton = sdk.get_native_singleton("via.hid.GamePad")
 end
 local mb_singleton = sdk.get_native_singleton("via.hid.Mouse")
@@ -478,7 +488,7 @@ local mb_typedef = sdk.find_type_definition("via.hid.Mouse")
 local function update_states()
 	hk.kb = sdk.call_native_func(kb_singleton, kb_typedef, "get_Device")
 	hk.pad = sdk.call_native_func(gp_singleton, gp_typedef, "getMergedDevice", 0)
-	if reframework.get_game_name() == "mhwilds" then
+	if (reframework.get_game_name() == "mhwilds") or (reframework.get_game_name() == "re9")  then
 		hk.pad = sdk.call_native_func(gp_singleton, gp_typedef, "get_MergedDevice")
 	end
 	hk.mouse = sdk.call_native_func(mb_singleton, mb_typedef, "get_Device")
@@ -486,28 +496,34 @@ local function update_states()
 	hotkeys_down, hotkeys_up, hotkeys_trig = {}, {}, {}
 	
 	if kb then
-		for key, state in pairs(kb_state.released) do 
-			kb_state.released[key]  = kb:call("isRelease", key) 
-			kb_state.down[key] 		= kb:call("isDown", key) 
-			kb_state.triggered[key] = kb:call("isTrigger", key) 
+		if reframework.get_game_name() == "re9"  then
+			for key, state in pairs(kb_state.down) do
+				kb_state.down[key] 		= kb:call("isDown", key)
+			end
+		else
+			for key, state in pairs(kb_state.released) do
+				kb_state.released[key]  = kb:call("isRelease", key)
+				kb_state.down[key] 		= kb:call("isDown", key)
+				kb_state.triggered[key] = kb:call("isTrigger", key)
+			end
 		end
 	end
 	
 	if mouse then 
 		m_up, m_down, m_trig = mouse:call("get_ButtonUp"), mouse:call("get_Button"), mouse:call("get_ButtonDown")
-		for button, state in pairs(mb_state.released) do 
-			mb_state.released[button]	= ((m_up | button) == m_up) 
-			mb_state.down[button] 		= ((m_down | button) == m_down) 
+		for button, state in pairs(mb_state.released) do
+			mb_state.released[button]	= ((m_up | button) == m_up)
+			mb_state.down[button] 		= ((m_down | button) == m_down)
 			mb_state.triggered[button]  = ((m_trig | button) == m_trig)
 		end
 	end
 	
 	if pad then 
 		gp_up, gp_down, gp_trig = pad:call("get_ButtonUp"), pad:call("get_Button"), pad:call("get_ButtonDown")
-		for button, state in pairs(gp_state.released) do 
-			gp_state.released[button] 	= ((gp_up | button) == gp_up) 
-			gp_state.down[button] 		= ((gp_down | button) == gp_down) 
-			gp_state.triggered[button]  = ((gp_trig | button) == gp_trig) 
+		for button, state in pairs(gp_state.released) do
+			gp_state.released[button] 	= ((gp_up | button) == gp_up)
+			gp_state.down[button] 		= ((gp_down | button) == gp_down)
+			gp_state.triggered[button]  = ((gp_trig | button) == gp_trig)
 		end
 	end
 end
@@ -529,7 +545,7 @@ hk = hk or {
 	hotkeys = hotkeys, 											-- Table of current action names vs button strings
 	default_hotkeys = default_hotkeys, 							-- Table of default action names vs button strings
 			
-	kb_state = kb_state,										-- Table with state (up/down/triggered) of all used keyboard keys, updated every frame
+	kb_state = kb_state,										-- Table with state (up/down/triggered) of all used keyboard keys, updated every frame SILVER NOTE: RE9 only supports the 'down' state
 	gp_state = gp_state, 										-- Table with state (up/down/triggered) of all used gamepad buttons, updated every frame
 	mb_state = mb_state, 										-- Table with state (up/down/triggered) of all used mouse buttons, updated every frame
 			
