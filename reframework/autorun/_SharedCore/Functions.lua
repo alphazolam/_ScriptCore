@@ -2,10 +2,10 @@
 local modName =  "_ScriptCore: Functions LUA"
 
 local modAuthor = "SilverEzredes; alphaZomega"
-local modUpdated = "12/20/2024"
-local modVersion = "v1.1.8"
-local modCredits = "praydog"
-
+local modUpdated = "10/17/2025"
+local modVersion = "v1.2.03"
+local modCredits = "praydog; Che"
+local modNotes = "Added 'format_ray_test_results' and updated 'test_ray' (Che)"
 --/////////////////////////////////////--
 local enums = {}
 
@@ -54,8 +54,8 @@ local function generate_statics(typename)
 			local raw_value = field:get_data(nil)
 			if raw_value ~= nil then
 				local name = field:get_name()
-				enum[name] = raw_value 
-				enum[raw_value] = name 
+				enum[name] = raw_value
+				enum[raw_value] = name
 				table.insert(names, name)
 			end
 		end
@@ -88,46 +88,6 @@ end
 
 local function get_GameObjectComponent(GameObject, ComponentType)
 	return GameObject and GameObject:call("getComponent(System.Type)", sdk.typeof(ComponentType))
-end
-
-local function get_Field(GameObject, FieldName)
-    return GameObject:get_field(FieldName)
-end
-
-local function call_Method(GameObject, MethodName, NewValue)
-    return GameObject:call(MethodName, NewValue)
-end
-
-local function boolean_ToInt(BoolName)
-    if BoolName then
-        return 1
-      else
-        return 0
-    end
-end
-
-local function boolean_ToFloat(BoolName)
-    if BoolName then
-        return 1.0
-      else
-        return 0.0
-    end
-end
-
-local function int_ToBoolean(IntName)
-    if IntName == 1 then
-        return true
-      else
-        return false
-    end
-end
-
-local function float_ToBoolean(FloatName)
-    if FloatName == 1.0 then
-        return true
-      else
-        return false
-    end
 end
 
 local function convert_rgb_to_vector3f(red, green, blue)
@@ -168,11 +128,10 @@ local function convert_vector4f_to_rgba(vector)
     return R, G, B, A
 end
 
---Convert RGBA to AGBR, args can take either a table with 4 values or 4 different ints
--- i.e.: 
--- myCoolColorTable = {255, 187, 0, 255} 
--- myCoolColorRed = 255, myCoolColorGreen = 72, myCoolColorBlue = 137, myCoolColorAlpha = 255,
-local function convert_rgba_to_AGBR(r, g, b, a)
+--Convert RGBA to ABGR, args can take either a table with 4 values or 4 different ints
+-- myCoolColorTable = {255, 187, 0, 255}
+-- red = 255, green = 72, blue = 137, alpha = 255,
+local function convert_rgba_to_ABGR(r, g, b, a)
     if type(r) == "table" then
         r, g, b, a = r[1], r[2], r[3], r[4]
     end
@@ -182,32 +141,42 @@ local function convert_rgba_to_AGBR(r, g, b, a)
     b = math.min(255, math.max(0, b))
     a = math.min(255, math.max(0, a))
 
-    local agbr = (a << 24) | (b << 16) | (g << 8) | r
-    return agbr
+    local abgr = (a << 24) | (b << 16) | (g << 8) | r
+    return abgr
 end
-
-local function table_contains(table, element)
-    for _, value in ipairs(table) do
-        if value == element then
-            return true
+--Counts the number of elements in a table
+local function countTableElements(tbl)
+    local count = 0
+    for _, value in pairs(tbl) do
+        if type(value) == "table" then
+            count = count + countTableElements(value)
+        else
+            count = count + 1
+        end
+    end
+    return count
+end
+--Checks if a table contains the specified element
+local function table_contains(tbl, element, isSearchKeys)
+    if isSearchKeys then
+        for key, _ in pairs(tbl) do
+            if key == element then
+                return true
+            end
+        end
+    else
+        for _, value in ipairs(tbl) do
+            if value == element then
+                return true
+            end
         end
     end
     return false
 end
-
+--Draws a tooltip, can be forced
 local function tooltip(text, do_force)
     if do_force or imgui.is_item_hovered() then
         imgui.set_tooltip(text)
-    end
-end
-
-local function colored_TextSwitch(SampleText, StateSwitchName, State_01, Color_01, State_02, Color_02)
-    imgui.button(SampleText)
-    imgui.same_line()
-    if StateSwitchName then
-        imgui.text_colored(State_01, Color_01)
-    else
-        imgui.text_colored(State_02, Color_02)
     end
 end
 
@@ -219,9 +188,10 @@ local function create_resource(resource_type, resource_path)
 	return new_resource:create_holder(resource_type .. "Holder"):add_ref()
 end
 
-local function isBKF(var)
-    if var then
-        return "<" .. var .. ">k__BackingField"
+--Returns a field as a BackingField field
+local function isBKF(field)
+    if field then
+        return "<" .. field .. ">k__BackingField"
     end
 end
 
@@ -251,7 +221,6 @@ local function get_fields_and_methods(typedef)
 	end
 	fms[name] = {fields, methods}
 	return fields, methods
-	
 end
 
 REMgdObj = {
@@ -266,14 +235,14 @@ REMgdObj = {
         o._.name = o._.type:get_name()
         o._.Name = o._.type:get_full_name()
         o._.fields = {}
-        for i, field in ipairs(o._.type:get_fields()) do 
+        for i, field in ipairs(o._.type:get_fields()) do
             local field_name = field:get_name()
             local try, value = pcall(field.get_data, field, obj)
             o._.fields[field_name] = field
             o[field_name] = value
         end
         o._.methods = {}
-        for i, method in ipairs(o._.type:get_methods()) do 
+        for i, method in ipairs(o._.type:get_methods()) do
             local method_name = method:get_name()
             o._.methods[method_name] = method
             o[method_name] = function(self, args)
@@ -402,7 +371,6 @@ local function is_child_of(child_xform, possible_parent_xform)
 	return false
 end
 
-
 --MMDK Functions:
 
 --Generates a unique name (relative to a dictionary of names)
@@ -433,7 +401,7 @@ local function lua_get_array(src_obj, allow_empty)
 			system_array[i] = src_obj:get_Item(i-1)
 		end
 	end
-	system_array = system_array or src_obj.get_elements and src_obj:get_elements() 
+	system_array = system_array or src_obj.get_elements and src_obj:get_elements()
 	return (allow_empty and system_array) or (system_array and system_array[1] and system_array)
 end
 
@@ -480,7 +448,7 @@ local function clone_array(re_array, new_array_sz, td_name, do_copy_only)
 	new_array_sz = new_array_sz or #re_array
 	td_name = td_name or re_array:get_type_definition():get_full_name():gsub("%[%]", "")
 	local new_array = sdk.create_managed_array(td_name, new_array_sz):add_ref()
-	for i, item in pairs(re_array) do 
+	for i, item in pairs(re_array) do
 		if item ~= nil then
 			new_array[i] = (not do_copy_only and sdk.is_managed_object(item) and not item.type and clone(item)) or item
 		end
@@ -525,16 +493,16 @@ end
 --Adds one new blank item to a SystemArray; can be passed the array or a string typename if the array doesnt yet exist
 local function append_to_array(re_array, new_item, fields)
 	
-	if type(re_array) == "string" then 
+	if type(re_array) == "string" then
 		re_array =  sdk.create_managed_array(re_array, 0):add_ref()
 	end
 	local sz = 0
 	local td_name = re_array:get_type_definition():get_full_name():gsub("%[%]", "")
 	local new_array = sdk.create_managed_array(td_name, re_array:get_Count()+1):add_ref()
 	
-	for i=0, new_array:get_Count() - 1 do 
+	for i=0, new_array:get_Count() - 1 do
 		if re_array[i] ~= nil then
-			new_array[i] = re_array[i] 
+			new_array[i] = re_array[i]
 		else 
 			new_array[i] = new_item or (sdk.create_instance(td_name) or sdk.create_instance(td_name, true)):add_ref()
 			sz = i + 1
@@ -560,8 +528,8 @@ local function remove_array(array, rem_idx, new_size)
 	local new_arr = sdk.create_managed_array(array:get_type_definition():get_full_name():gsub("%[%]", ""), new_size or #array-1):add_ref()
 	local ctr = 0
 	for i, item in pairs(array) do
-		if i ~= rem_idx then 
-			new_arr[ctr] = item 
+		if i ~= rem_idx then
+			new_arr[ctr] = item
 			ctr = ctr + 1
 		end
 	end
@@ -990,13 +958,13 @@ end
 --Uses a table of string component type names to create new components for the gameobject
 local function spawn_gameobj(name, position, rotation, folder, components_list)
 	local gameobj = sdk.find_type_definition("via.GameObject"):get_method("create(System.String, via.Folder)"):call(nil, name, folder or 0)
-	if gameobj then 
+	if gameobj then
 		gameobj:call(".ctor")
 		gameobj:set_Name(name)
 		local xform = gameobj:get_Transform()
 		if position then xform:set_Position(position) end
 		if rotation then xform:set_Rotation(rotation) end
-		if components_list then 
+		if components_list then
 			for i, comp_name in ipairs(components_list) do
 				add_component(gameobj, comp_name)
 			end
@@ -1125,13 +1093,15 @@ local contact_pt_td = sdk.find_type_definition("via.physics.ContactPoint")
 local ray_result = sdk.create_instance("via.physics.CastRayResult"):add_ref()
 local ray_method = sdk.find_type_definition("via.physics.System"):get_method("castRay(via.physics.CastRayQuery, via.physics.CastRayResult)")
 local ray_query = sdk.create_instance("via.physics.CastRayQuery"):add_ref()
+local get_layer_name_method = sdk.find_type_definition("via.physics.System"):get_method("getLayerName(System.UInt32)")
+local get_mask_name_method = sdk.find_type_definition("via.physics.System"):get_method("getMaskName(System.UInt32, System.UInt32)")
+
 ray_query:clearOptions()
 ray_query:enableAllHits()
 ray_query:enableNearSort()
 local filter_info = ray_query:get_FilterInfo()
 filter_info:set_Group(0)
 
-local shape_cast_result = sdk.create_instance("via.physics.ShapeCastResult"):add_ref()
 local shape_ray_method = sdk.find_type_definition("via.physics.System"):get_method("castSphere(via.Sphere, via.vec3, via.vec3, System.UInt32, via.physics.FilterInfo, via.physics.ShapeCastResult)")
 local shape_ray_method2 = sdk.find_type_definition("via.physics.System"):get_method("castShape(via.physics.ShapeCastQuery, via.physics.ShapeCastResult)")
 local shape_cast_result = sdk.create_instance("via.physics.ShapeCastResult"):add_ref()
@@ -1176,21 +1146,86 @@ local function cast_ray(start_position, end_position, layer, maskbits, shape_rad
 	return result
 end
 
---Casts 10,000 rays to see which layers and maskbits detect what
+--Casts 1000 rays to see which layers and maskbits detect what
 local function test_ray(start_pos, end_pos)
 	local cam_mtx = not (start_pos and end_pos) and sdk.get_primary_camera():get_WorldMatrix()
 	start_pos = start_pos or cam_mtx[3]
 	end_pos = end_pos or cam_mtx[3] + cam_mtx[2] * -1000 
 	local results = {}
+    local layer_names = {}
+    local mask_names = {}
+    local mask_bits = {}
+	local bits = {0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536}
 	
-	for layer=0, 100 do
+
+	for layer=0, 1000 do
 		results[layer] = {}
-		for maskbits=0, 100 do
-			local out = cast_ray(start_pos, end_pos, layer, maskbits)[1]
-			results[layer][maskbits] = out and out[1]
+        layer_names[layer] = get_layer_name_method:call(via_physics_system, layer)
+        mask_names[layer] = {}
+        mask_bits[layer] = {}
+        
+        for k, mask_bit in pairs(bits) do
+            -- for maskbits=0, 255 do
+			local out = cast_ray(start_pos, end_pos, layer, mask_bit)[1]
+			results[layer][k] = out and out[1]
+            mask_names[layer][k] = get_mask_name_method:call(via_physics_system, layer, mask_bit)
+            mask_bits[layer][k] = mask_bit
 		end
 	end
-	return results
+
+	return results, layer_names, mask_names, mask_bits
+	-- return results
+end
+
+local function format_ray_test_results(hit_list, layer_names, mask_names, mask_bits)
+    print( "\n",#hit_list )
+
+	local layer = 0
+    local mask = 0
+
+	for i = 1, #hit_list do
+    
+        for j = 1, #hit_list[i] do
+            local layer_name = layer_names[i]
+
+            if hit_list[i][j] then    
+                local hit_name = hit_list[i][j]:get_Name()
+                local mask_name = mask_names[i][j]
+                local mask_bit = mask_bits[i][j]
+                print( string.format("%-80s", hit_name), string.format("%-8s", "Layer:"..i.." "..layer_name), "Mask:"..mask_bit.." "..mask_name )
+            end
+
+            mask = mask + 1
+        end
+    
+        layer = layer + 1
+	end
+
+    print( layer, mask )
+end
+
+--Adds a new via.motion.DynamicMotionBank to a via.motion.Motion, making accessible the animations from 'motlist_path' by using the BankID 'new_bank_id'
+local function add_dynamic_motionbank(motion, motlist_path, new_bank_id)
+	local new_dbank
+	local bank_count = motion:getDynamicMotionBankCount()
+	local insert_idx = bank_count
+	for i=0, bank_count-1 do
+		local dbank = motion:getDynamicMotionBank(i)
+		if dbank and ((dbank:get_BankID() == new_bank_id) or (dbank:get_MotionList() and dbank:get_MotionList():ToString():lower():find(motlist_path:lower()))) then
+			new_dbank, insert_idx = dbank, i
+			break
+		end
+	end
+	if not new_dbank then
+		motion:setDynamicMotionBankCount(bank_count+1)
+	end
+	new_dbank = new_dbank or sdk.create_instance("via.motion.DynamicMotionBank"):add_ref()
+	new_dbank:set_MotionList(create_resource("via.motion.MotionListResource", motlist_path))
+	new_dbank:set_OverwriteBankID(true)
+	new_dbank:set_BankID(new_bank_id)
+	motion:setDynamicMotionBank(insert_idx, new_dbank)
+	
+	return new_dbank
 end
 
 func = {
@@ -1199,20 +1234,13 @@ func = {
     get_GameObject = get_GameObject,
     get_GameObjects = get_GameObjects,
     get_GameObjectComponent = get_GameObjectComponent,
-    get_Field = get_Field,
-    call_Method = call_Method,
-    boolean_ToInt = boolean_ToInt,
-    boolean_ToFloat = boolean_ToFloat,
-    int_ToBoolean = int_ToBoolean,
-    float_ToBoolean = float_ToBoolean,
     convert_rgb_to_vector3f = convert_rgb_to_vector3f,
     convert_vector3f_to_rgb = convert_vector3f_to_rgb,
     convert_rgba_to_vector4f = convert_rgba_to_vector4f,
     convert_vector4f_to_rgba = convert_vector4f_to_rgba,
     convert_float4_to_vector4f = convert_float4_to_vector4f,
-	convert_rgba_to_AGBR = convert_rgba_to_AGBR,
+	convert_rgba_to_ABGR = convert_rgba_to_ABGR,
     tooltip = tooltip,
-    colored_TextSwitch = colored_TextSwitch,
     create_resource = create_resource,
     table_contains = table_contains,
     generate_statics_global = generate_statics_global,
@@ -1224,6 +1252,7 @@ func = {
 	convert_to_json_tbl = convert_to_json_tbl,
     deepcopy = deepcopy,
     compareTables = compareTables,
+	countTableElements = countTableElements,
 	remove_MissingElements = remove_MissingElements,
 	get_children = get_children,
 	is_child_of = is_child_of,
@@ -1261,11 +1290,13 @@ func = {
 	copy_fields_to_objs = copy_fields_to_objs,
 	cast_ray = cast_ray,
 	test_ray = test_ray,
+	format_ray_test_results = format_ray_test_results,
 	damping = damping,
 	copy_props = copy_props,
 	add_component = add_component,
 	spawn_gameobj = spawn_gameobj,
 	--clone_gameobj = clone_gameobj, --incomplete
 	split = split,
+	add_dynamic_motionbank = add_dynamic_motionbank,
 }
 return func
