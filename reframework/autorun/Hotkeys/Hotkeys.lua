@@ -1,11 +1,11 @@
 --/////////////////////////////////////--
 local modName =  "_ScriptCore: Hotkeys"
 
-local modAuthor = "alphaZomega"
-local modUpdated = "02/28/2026"
-local modVersion = "v1.3.52"
+local modAuthor = "alphaZomega, SilverEzredes"
+local modUpdated = "09/02/2026"
+local modVersion = "v1.3.54"
 local modCredits = "praydog; Che"
-local modNotes = "Added RE9 support"
+local modNotes = "Fixed Keyboard and Gamepad support for DD2 (Sept. 2nd 2026 Title Update)"
 --/////////////////////////////////////--
 
 local kb, mouse, pad
@@ -86,6 +86,7 @@ local hold_dn_times = {}
 local hold_times = {}
 local dt_rel_times = {}
 local dt_times = {}
+local hotkeys_prev = {}
 
 local keys = generate_statics("via.hid.KeyboardKey")
 local buttons = generate_statics("via.hid.GamePadButton")
@@ -267,6 +268,18 @@ local function chk_down(action_name)
 	return hotkeys_down[action_name]
 end
 
+--Checks if a button or key was pressed and then released, mimicking the 'chk_up' function.
+local function chk_released(action_name)
+    local key_name = hotkeys[action_name]
+    if not key_name then return false end
+
+    local isDown = kb_state.down[keys[key_name]] or gp_state.down[buttons[key_name]] or mb_state.down[mbuttons[key_name]]
+    local wasDown = hotkeys_prev[action_name]
+    
+	hotkeys_prev[action_name] = isDown
+    return wasDown and not isDown
+end
+
 --Checks if an action's binding is released
 local function chk_up(action_name)
 	if hotkeys_up[action_name] == nil then 
@@ -371,9 +384,9 @@ local function hotkey_setter(action_name, hold_action_name, fake_name, title_too
 					end
 				end
 			end
-			if  reframework.get_game_name() ~= "re9" then
+			if (reframework.get_game_name() == "re9") or (reframework.get_game_name() == "dd2") then
 				for key_name, id in pairs(keys) do
-					if kb and kb:call("isRelease", id) then
+					if kb and kb:call("isDown", id) then
 						hotkeys[action_name] = key_name
 						key_updated = true
 						goto exit
@@ -381,7 +394,7 @@ local function hotkey_setter(action_name, hold_action_name, fake_name, title_too
 				end
 			else
 				for key_name, id in pairs(keys) do
-					if kb and kb:call("isDown", id) then
+					if kb and kb:call("isRelease", id) then
 						hotkeys[action_name] = key_name
 						key_updated = true
 						goto exit
@@ -487,18 +500,24 @@ local mb_typedef = sdk.find_type_definition("via.hid.Mouse")
 
 local function update_states()
 	hk.kb = sdk.call_native_func(kb_singleton, kb_typedef, "get_Device")
-	hk.pad = sdk.call_native_func(gp_singleton, gp_typedef, "getMergedDevice", 0)
-	if (reframework.get_game_name() == "mhwilds") or (reframework.get_game_name() == "re9")  then
+	if (reframework.get_game_name() == "mhwilds") or (reframework.get_game_name() == "re9") or (reframework.get_game_name() == "dd2")  then
 		hk.pad = sdk.call_native_func(gp_singleton, gp_typedef, "get_MergedDevice")
+	else
+		hk.pad = sdk.call_native_func(gp_singleton, gp_typedef, "getMergedDevice", 0)
 	end
 	hk.mouse = sdk.call_native_func(mb_singleton, mb_typedef, "get_Device")
 	kb, pad, mouse = hk.kb, hk.pad, hk.mouse
 	hotkeys_down, hotkeys_up, hotkeys_trig = {}, {}, {}
 	
 	if kb then
-		if reframework.get_game_name() == "re9"  then
+		if reframework.get_game_name() == "re9" then
 			for key, state in pairs(kb_state.down) do
 				kb_state.down[key] 		= kb:call("isDown", key)
+			end
+		elseif reframework.get_game_name() == "dd2" then
+			for key, state in pairs(kb_state.down) do
+				kb_state.down[key] 		= kb:call("isDown", key)
+				kb_state.triggered[key] = kb:call("isTrigger", key)
 			end
 		else
 			for key, state in pairs(kb_state.released) do
@@ -545,7 +564,7 @@ hk = hk or {
 	hotkeys = hotkeys, 											-- Table of current action names vs button strings
 	default_hotkeys = default_hotkeys, 							-- Table of default action names vs button strings
 			
-	kb_state = kb_state,										-- Table with state (up/down/triggered) of all used keyboard keys, updated every frame SILVER NOTE: RE9 only supports the 'down' state
+	kb_state = kb_state,										-- Table with state (up/down/triggered) of all used keyboard keys, updated every frame SILVER: RE9 only supports the 'down' state
 	gp_state = gp_state, 										-- Table with state (up/down/triggered) of all used gamepad buttons, updated every frame
 	mb_state = mb_state, 										-- Table with state (up/down/triggered) of all used mouse buttons, updated every frame
 			
@@ -569,6 +588,7 @@ hk = hk or {
 	chk_up = chk_up, 											-- Fn checks if an input (by action name) is released
 	chk_down = chk_down, 										-- Fn checks if an input (by action name) is down
 	chk_trig = chk_trig, 										-- Fn checks if an input (by action name) is just pressed
+	chk_released = chk_released,								-- Fn checks if an input (by action name) was just released to mimick the 'chk_up' function.
 			
 	check_kb_key = check_kb_key,								-- Fn checks if a keyboard input is released, down or triggered (by key name)
 	check_mouse_button = check_mouse_button,					-- Fn checks if a mouse input is released, down or triggered (by mbutton name)

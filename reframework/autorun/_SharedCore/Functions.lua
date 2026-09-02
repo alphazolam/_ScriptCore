@@ -2,10 +2,10 @@
 local modName =  "_ScriptCore: Functions LUA"
 
 local modAuthor = "SilverEzredes; alphaZomega"
-local modUpdated = "10/17/2025"
-local modVersion = "v1.2.03"
+local modUpdated = "09/02/2026"
+local modVersion = "v1.2.07"
 local modCredits = "praydog; Che"
-local modNotes = "Added 'format_ray_test_results' and updated 'test_ray' (Che)"
+local modNotes = ""
 --/////////////////////////////////////--
 local enums = {}
 
